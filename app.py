@@ -203,4 +203,5 @@ if raw_df is not None:
     if start_date: df = df[df["Date"] >= pd.to_datetime(start_date)]
     if end_date: df = df[df["Date"] <= pd.to_datetime(end_date)]
     if text_query.strip() and "Details" in df.columns:
-        df = df[df["Details"].astype(str).str.contains(text_query, case=False, na
+       df = df[df["Details"].astype(str).str.contains(text_query, case=False, na=False)]
+ 
