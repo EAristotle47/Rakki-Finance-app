@@ -18,6 +18,9 @@ st.set_page_config(
     layout="wide",
 )
 
+# -----------------------------
+# Custom CSS
+# -----------------------------
 HIDE_DEFAULT_STYLES = """
     <style>
         #MainMenu {visibility: hidden;}
@@ -37,22 +40,19 @@ HIDE_DEFAULT_STYLES = """
 """
 st.markdown(HIDE_DEFAULT_STYLES, unsafe_allow_html=True)
 
-st.markdown(
-    """
-    <div class="topbar">
-      <div class="topbar-inner">
-        <div class="brand"><span class="brand-emoji">💰</span>Rakki Finance</div>
-        <div class="pills">
-          <span class="pill">Upload CSV / Excel / Google Sheets</span>
-          <span class="pill">Auto-categorize</span>
-          <span class="pill">Shareable</span>
-          <span class="pill">Download Reports</span>
-        </div>
-      </div>
+st.markdown("""
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-emoji">💰</span>Rakki Finance</div>
+    <div class="pills">
+      <span class="pill">Upload CSV / Excel / Google Sheets</span>
+      <span class="pill">Auto-categorize</span>
+      <span class="pill">Shareable</span>
+      <span class="pill">Download Reports</span>
     </div>
-    """,
-    unsafe_allow_html=True,
-)
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # Persistent category storage
@@ -160,7 +160,7 @@ def add_keyword_to_category(category: str, keyword: str) -> bool:
 # -----------------------------
 with st.sidebar:
     st.subheader("Data Input")
-    uploaded = st.file_uploader("Upload transactions (CSV / Excel)", type=["csv", "xlsx", "xls", "ods"])
+    uploaded = st.file_uploader("Upload transactions (CSV / Excel)", type=["csv","xlsx","xls","ods"])
     gs_url = st.text_input("Or paste a public Google Sheets link")
     cols = st.columns([1,1])
     with cols[0]: use_sample = st.button("Load sample data")
@@ -182,15 +182,23 @@ if reset_state:
     st.success("Categories reset.")
 
 # -----------------------------
-# Load and preprocess data
+# Load and display data
 # -----------------------------
 raw_df = None
 if uploaded: raw_df = load_from_uploaded(uploaded)
 elif gs_url.strip(): raw_df = load_from_google_sheets(gs_url.strip())
 elif use_sample:
-    raw_df = pd.DataFrame({"Date": ["12 Jan 2025","13 Jan 2025"], "Details": ["Starbucks","Payroll"], "Debit/Credit": ["Debit","Credit"], "Amount": ["5.50","2500.00"]})
+    raw_df = pd.DataFrame({
+        "Date": ["12 Jan 2025","13 Jan 2025"],
+        "Details": ["Starbucks","Payroll"],
+        "Debit/Credit": ["Debit","Credit"],
+        "Amount": ["5.50","2500.00"]
+    })
 
 if raw_df is not None:
+    st.success("File loaded successfully!")
+    st.dataframe(raw_df.head())  # Show first rows immediately
+
     df = raw_df.copy()
     if "Amount" in df.columns: df["Amount"] = _infer_and_clean_amount(df["Amount"])
     if "Date" in df.columns: df["Date"] = _try_parse_date(df["Date"]).dt.tz_localize(None)
@@ -203,5 +211,16 @@ if raw_df is not None:
     if start_date: df = df[df["Date"] >= pd.to_datetime(start_date)]
     if end_date: df = df[df["Date"] <= pd.to_datetime(end_date)]
     if text_query.strip() and "Details" in df.columns:
-       df = df[df["Details"].astype(str).str.contains(text_query, case=False, na=False)]
- 
+        df = df[df["Details"].astype(str).str.contains(text_query, case=False, na=False)]
+
+    st.subheader("Transactions")
+    st.dataframe(df, use_container_width=True)
+else:
+    st.info("Upload a CSV/Excel file or paste a Google Sheets link in the sidebar.")
+
+# -----------------------------
+# Footer
+# -----------------------------
+st.markdown("""
+<div class="footerbar">Built with ❤️ using Streamlit. Share this app by deploying to Streamlit Community Cloud.</div>
+""", unsafe_allow_html=True)
