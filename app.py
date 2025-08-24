@@ -275,6 +275,9 @@ if raw_df is not None:
         # -----------------------------
         # Header & key metrics
         # -----------------------------
+        # Remove extra white space above Overview
+        st.markdown('<div style="margin-top:0px;"></div>', unsafe_allow_html=True)  # FIXED
+
         st.markdown("### Overview")
         total_expense = float(df.loc[df["Debit/Credit"] == "Debit", "Amount"].sum())
         total_payments = float(df.loc[df["Debit/Credit"] == "Credit", "Amount"].sum())
@@ -415,7 +418,8 @@ if raw_df is not None:
 
         if exp_fmt == "CSV":
             b = io.BytesIO()
-            cleaned.to_csv(b, index=False).seek(0)
+            cleaned.to_csv(b, index=False)  # FIXED
+            b.seek(0)  # FIXED
             st.download_button("Download CSV", data=b, file_name="transactions_cleaned.csv", mime="text/csv")
         else:
             b = io.BytesIO()
@@ -427,15 +431,4 @@ if raw_df is not None:
 else:
     st.markdown(
         """
-        ### Welcome to Rakki Finance
-        Upload a CSV/Excel file or paste a public Google Sheets link in the sidebar to begin. 
-        You can also try sample data. The app cleans data, removes *Unnamed* columns, auto-detects dates & amounts, and lets you manage categories.
-        """
-    )
-
-st.markdown(
-    """
-    <div class="footerbar">Built with ❤️ using Streamlit. Share this app by deploying to Streamlit Community Cloud and sending your app link.</div>
-    """,
-    unsafe_allow_html=True,
-)
+        ### Welcome
